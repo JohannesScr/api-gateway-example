@@ -11,7 +11,6 @@ func main() {
 	env := includes.Env{}
 	env.Load(".env")
 
-
 	s := server.NewServer()
 	log.Fatal(http.ListenAndServe(":8080", s.Router))
 }

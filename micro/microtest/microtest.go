@@ -1,76 +1,76 @@
 package microtest
 
 import (
-	"github.com/google/uuid"
-	"github.com/johannesscr/api-gateway-example/src/includes"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 )
 
+// mock is the interface that connects all micro-services
 type mock interface {
-	SetURL(s string, h string)
+	SetURL(scheme string, host string)
 }
 
-//type MockServer struct {
-//	URL url.URL
-//}
-
-//func mockHandler(w http.ResponseWriter, r *http.Request) {
-//	type user struct {
-//		UUID uuid.UUID `json:"uuid"`
-//		FirstName string `json:"first_name"`
-//		LastName string `json:"last_name"`
-//		Email string `json:"email"`
-//	}
-//
-//	u := user{
-//		UUID: uuid.New(),
-//		FirstName: "james",
-//		LastName: "bond",
-//		Email: "007@gov.uk",
-//	}
-//
-//	resp := includes.Resp{
-//		Status: 200,
-//		Message: "user found",
-//		Data: map[string]user{
-//			"user": u,
-//		},
-//	}
-//	resp.Respond(w, r)
-//}
-
-func MockHandle(chReq chan<- string, chRes <-chan string, w http.ResponseWriter, r *http.Request) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		bs := []byte(<-chRes)
-
-
-
-		resp := includes.Resp{
-			Status: 200,
-			Message: "user found",
-			Data: map[string]user{
-				"user": u,
-			},
-		}
-		resp.Respond(w, r)
-	}
+type Response struct {
+	Status int
+	Header map[string]string
+	Body string
 }
 
-func MockServer(m mock) *httptest.Server {
-	mockServer := httptest.NewServer(http.HandlerFunc(mockHandler))
+type Mock struct {
+	URL    url.URL
+	Server *httptest.Server
+	Response Response
+}
+
+func MockServer(mx mock) *Mock {
+	m := &Mock{}
+	m.Response.Header = make(map[string]string)
+	m.Server = m.mockServer(mx)
+	return m
+}
+
+// SetURL makes the Mock also of type mock interface
+func (m *Mock) SetURL(s string, h string) {
+	m.URL.Scheme = s
+	m.URL.Host = h
+}
+
+// MockServer takes a type mock interface, the type mock interface is the
+// interface for any micro-service. Due to go routing any request to the mock
+// handler the type mock interface which points (via the URL) to the
+// MockServer can return any response provided for any request make to the
+// type mock interface
+func (m *Mock) mockServer(mx mock) *httptest.Server {
+	mockServer := httptest.NewServer(m.mockHandler())
 
 	xs := strings.Split(mockServer.URL, "/")
 	scheme := strings.Replace(xs[0], ":", "", 1)
 	host := strings.Join(xs[2:], "")
-	m.SetURL(scheme, host)
+	mx.SetURL(scheme, host)
 	return mockServer
 }
 
-//func (m MockServer) MockHandler() {
-//
-//}
+// mockHandler takes the request properties defined on the Mock and writes
+// it to the response of the mockServer which is a mock of the micro-service
+// being tested
+func (m *Mock) mockHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		//log.Println(m.Response.Status)
+		//log.Println(m.Response.Header)
+		//log.Println(m.Response.Body)
+
+		w.WriteHeader(m.Response.Status)
+		for key, val := range m.Response.Header {
+			w.Header().Set(key, val)
+		}
+
+		_, err := w.Write([]byte(m.Response.Body))
+		if err != nil {
+			log.Panic(err)
+		}
+	}
+}
 

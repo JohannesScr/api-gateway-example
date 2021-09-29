@@ -37,8 +37,12 @@ func TestService_SetURL(t *testing.T) {
 }
 
 func TestService_GetHome(t *testing.T) {
-	//s := NewService()
-	//srv := microtest.MockServer(s)
+	s := NewService()
+	ms := microtest.MockServer(s)
+	defer ms.Server.Close()
+
+
+
 }
 
 func TestService_GetUser(t *testing.T) {
@@ -46,10 +50,13 @@ func TestService_GetUser(t *testing.T) {
 	s := NewService()
 	// startup the microservice
 	ms := microtest.MockServer(s)
-	defer ms.Close()  // defer shut down the microservice
+	defer ms.Server.Close()  // defer shut down the microservice
+
+	ms.Response.Status = 404
+	ms.Response.Header["x-user-token"] = "124"
+	ms.Response.Body = `{"message": "user found successfully", "data": {"user": {"uuid": "123", "first_name": "james", "last_name": "bond", "email": "007@mi6.co.uk"}}, "errors": {}}`
 
 	u, errors := s.GetUser(uuid.New().String())
-
 	if errors != nil {
 		t.Errorf("errors on response: %v", errors)
 	}
