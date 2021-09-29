@@ -1,0 +1,8 @@
+# Coverage Files
+*.out
+
+# Dot Env File
+.env
+
+# IDEA Settings
+.idea
