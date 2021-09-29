@@ -64,7 +64,7 @@ func (s service) GetUser(uUUID string) (user, map[string][]string) {
 
 	client := http.Client{}
 	req, _ := http.NewRequest("GET", s.URL.String(), nil)
-	req.Header.Set("x-user-token", "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzLXRva2VuIjoiMGRhNzk1MjItY2VjZS00YWFkLTllMmEtZjQ1MzkwOGRlNTVmIiwicy1pZCI6Ijc4OWU4NDAxMTIyYTBmYmQ2M2NkM2JjNjhkMTQ5NzlmODc3NjZiMTk1MzdiZThkYmRjNDFmNTE4ZDFjZWViY2QiLCJ1LWlkIjoiMWNhMGFlNjgtMWJmMi00YTE4LWE4MTktYmU1YWE4MGVkOThlIiwiY3JlYXRlZCI6IjA5LzI5LzIwMjEsIDA4OjEwOjUyIn0.ZVNDocuNd760gwJFLY5V5Mg_gBf8I1oydMOvTqJes6M")
+	req.Header.Set("x-token", "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzLXRva2VuIjoiMGRhNzk1MjItY2VjZS00YWFkLTllMmEtZjQ1MzkwOGRlNTVmIiwicy1pZCI6Ijc4OWU4NDAxMTIyYTBmYmQ2M2NkM2JjNjhkMTQ5NzlmODc3NjZiMTk1MzdiZThkYmRjNDFmNTE4ZDFjZWViY2QiLCJ1LWlkIjoiMWNhMGFlNjgtMWJmMi00YTE4LWE4MTktYmU1YWE4MGVkOThlIiwiY3JlYXRlZCI6IjA5LzI5LzIwMjEsIDA4OjEwOjUyIn0.ZVNDocuNd760gwJFLY5V5Mg_gBf8I1oydMOvTqJes6M")
 	res, err := client.Do(req)
 	if err != nil {
 		log.Println(err)
