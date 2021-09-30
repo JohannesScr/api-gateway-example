@@ -32,17 +32,19 @@ func HandleUserGet(w http.ResponseWriter, r *http.Request) {
 	if errors != nil {
 		log.Println(errors)
 	}
-	log.Println(u)
 
-	msg := struct{
-		Alive bool `json:"alive"`
+	user := includes.User{}
+	user.Map(u)
+
+	data := struct{
+		User includes.User `json:"user"`
 	}{
-		Alive: true,
+		User: user,
 	}
 	res := includes.Resp{
 		Status: 200,
-		Message: "Welcome to Admin API Gateway",
-		Data: msg,
+		Message: "user found successfully",
+		Data: data,
 	}
 	res.Respond(w, r)
 }

@@ -45,7 +45,7 @@ func (e Env) Load(s string) {
 // Resp is a structure for the basis of all responses to clients.
 // This enforces a consistent structure for all responses.
 type Resp struct {
-	Status    int                `json:"-"`
+	Status  int                 `json:"-"`
 	Message string              `json:"message"`
 	Data    interface{}         `json:"data"`
 	Errors  map[string][]string `json:"errors"`

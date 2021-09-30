@@ -28,6 +28,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) routes() {
 	s.Router.HandleFunc("/", s.prop(handler.HandleHome)).Methods("GET")
+	s.Router.HandleFunc("/login", s.prop(handler.HandleHome)).Methods("POST")
 	s.Router.HandleFunc("/user/-", s.prop(handler.HandleUserGet)).Methods("GET")
 }
 

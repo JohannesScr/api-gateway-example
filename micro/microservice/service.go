@@ -11,15 +11,11 @@ import (
 
 // Service id the shorthand for the integration to the Security Micro-Service
 type service struct {
-	scheme string
-	host string
 	URL url.URL
 }
 
 func NewService() *service {
 	s := &service{
-		scheme: os.Getenv("MICROSERVICE_SCHEME"),
-		host: os.Getenv("MICROSERVICE_HOST"),
 		URL: url.URL{
 			Scheme: os.Getenv("MICROSERVICE_SCHEME"),
 			Host: os.Getenv("MICROSERVICE_HOST"),
@@ -31,15 +27,26 @@ func NewService() *service {
 // SetURL sets the URL for the Security Micro-Service to point to
 // SetURL is also the interface that makes it a mock service
 func (s *service) SetURL(sc string, h string) {
-	s.scheme = sc
-	s.host = h
 	s.URL.Scheme = sc
 	s.URL.Host = h
 }
 
+// SetEnv set the current service scheme and host as environmental variable
+func (s *service) SetEnv() error {
+	err := os.Setenv("MICROSERVICE_SCHEME", s.URL.Scheme)
+	if err != nil {
+		return err
+	}
+	err = os.Setenv("MICROSERVICE_HOST", s.URL.Host)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // GetHome is a PING function to test connection to the Security Micro-Service
 // is healthy
-func (s service) GetHome() bool {
+func (s *service) GetHome() bool {
 	_, err := http.Get(s.URL.String())
 	if err != nil {
 		log.Println(err)
@@ -48,7 +55,7 @@ func (s service) GetHome() bool {
 	return true
 }
 
-func (s service) GetUser(uUUID string) (user, map[string][]string) {
+func (s *service) GetUser(uUUID string) (User, map[string][]string) {
 	q := url.Values{}
 	q.Add("uuid", uUUID)
 
@@ -58,7 +65,7 @@ func (s service) GetUser(uUUID string) (user, map[string][]string) {
 	resp := struct {
 		HTTPCode int                 `json:"http_code"`
 		Message  string              `json:"message"`
-		Data     map[string]user     `json:"data"`
+		Data     map[string]User     `json:"data"`
 		Errors   map[string][]string `json:"errors"`
 	}{}
 
@@ -71,6 +78,7 @@ func (s service) GetUser(uUUID string) (user, map[string][]string) {
 	}
 
 	bs, _ := ioutil.ReadAll(res.Body)
+	//log.Printf("%s\n", bs)
 	err = res.Body.Close()
 	if err != nil {
 		log.Println(err)
@@ -79,8 +87,7 @@ func (s service) GetUser(uUUID string) (user, map[string][]string) {
 	err = json.Unmarshal(bs, &resp)
 	if err != nil {
 		log.Println(err)
-		return user{}, resp.Errors
+		return User{}, resp.Errors
 	}
 	return resp.Data["user"], nil
-	//return user{}, nil
 }
