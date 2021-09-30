@@ -10,8 +10,17 @@ func TestMockServer(t *testing.T) {
 	ms := MockServer(s)
 	defer ms.Server.Close()
 
-	ms.Response.Status = 200
-	ms.Response.Body = `{"data": {},"errors": {},"message": "Welcome to the POS api"}`
+	e := Exchange{
+		Response: Response{
+			Status: 200,
+			Body: `{
+				"data": {},
+				"errors": {},
+				"message": "Welcome to the POS api"
+			}`,
+		},
+	}
+	ms.Append(e)
 
 	b := s.GetHome()
 

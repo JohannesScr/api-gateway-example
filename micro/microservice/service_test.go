@@ -49,9 +49,25 @@ func TestService_GetUser(t *testing.T) {
 	ms := microtest.MockServer(s)
 	defer ms.Server.Close()  // defer shut down the microservice
 
-	ms.Response.Status = 404
-	ms.Response.Header["x-user-token"] = "124"
-	ms.Response.Body = `{"message": "user found successfully", "data": {"user": {"uuid": "6a67f46e-d9de-4d63-8283-bf5a5aa1e582", "first_name": "james", "last_name": "bond", "email": "007@mi6.co.uk"}}, "errors": {}}`
+	e := microtest.Exchange{
+		Response: microtest.Response{
+			Status: 200,
+			Header: map[string]string{"x-token": "124"},
+			Body: `{
+				"message": "user found successfully", 
+				"data": {
+					"user": {
+						"uuid": "6a67f46e-d9de-4d63-8283-bf5a5aa1e582", 
+						"first_name": "james", 
+						"last_name": "bond", 
+						"email": "007@mi6.co.uk"
+					}
+				}, 
+				"errors": {}
+			}`,
+		},
+	}
+	ms.Append(e)
 
 	u, errors := s.GetUser(uuid.New().String())
 	if errors != nil {

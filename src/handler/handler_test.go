@@ -5,10 +5,8 @@ import (
 	"github.com/johannesscr/api-gateway-example/micro/microservice"
 	"github.com/johannesscr/api-gateway-example/micro/microtest"
 	"github.com/johannesscr/api-gateway-example/src/includes"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"testing"
 )
 
@@ -46,37 +44,46 @@ func TestHandleUserGet(t *testing.T) {
 	ms := microtest.MockServer(s)
 	defer ms.Server.Close()
 
-	ms.Response.Status = 200
-	ms.Response.Header["x-token"] = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9."
-	ms.Response.Body = `
-	{
-		"message": "user found successfully", 
-		"data": {
-			"user": {
-				"uuid": "6a67f46e-d9de-4d63-8283-bf5a5aa1e582", 
-				"first_name": "james", 
-				"last_name": "bond", 
-				"email": "007@mi6.co.uk"
-			}
-		}, 
-		"errors": {}
-	}`
+	e := microtest.Exchange{
+		Response: microtest.Response{
+			Status: 200,
+			Header: map[string]string{
+				"x-token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.",
+			},
+			Body: `{
+				"message": "user found successfully", 
+				"data": {
+					"user": {
+						"uuid": "6a67f46e-d9de-4d63-8283-bf5a5aa1e582", 
+						"first_name": "james", 
+						"last_name": "bond", 
+						"email": "007@mi6.co.uk"
+					}
+				}, 
+				"errors": {}
+			}`,
+		},
+	}
+	ms.Append(e)
 
 	err := s.SetEnv()
 	if err != nil {
 		t.Errorf("unable to set microservice env vars")
 	}
 
-	req := httptest.NewRequest("GET", "/user/-", nil)
-	q := url.Values{}
-	q.Add("userUuid", "6a67f46e-d9de-4d63-8283-bf5a5aa1e582")
-	req.URL.RawQuery = q.Encode()
+	//req := httptest.NewRequest("GET", "/user/-", nil)
+	//q := url.Values{}
+	//q.Add("userUuid", "6a67f46e-d9de-4d63-8283-bf5a5aa1e582")
+	//req.URL.RawQuery = q.Encode()
 	rec := httptest.NewRecorder()
 
+	q := map[string]string{
+		"userUuid": "6a67f46e-d9de-4d63-8283-bf5a5aa1e582",
+	}
+	req := microtest.NewRequest("GET", "/user/-", q, nil, nil)
+
 	HandleUserGet(rec, req)
-	res := rec.Result()
-	xb, _ := ioutil.ReadAll(res.Body)
-	_ = res.Body.Close()
+	res, xb := microtest.ReadRecorder(rec)
 
 	type data struct {
 		User includes.User `json:"user"`
