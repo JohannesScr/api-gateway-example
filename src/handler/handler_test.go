@@ -71,10 +71,6 @@ func TestHandleUserGet(t *testing.T) {
 		t.Errorf("unable to set microservice env vars")
 	}
 
-	//req := httptest.NewRequest("GET", "/user/-", nil)
-	//q := url.Values{}
-	//q.Add("userUuid", "6a67f46e-d9de-4d63-8283-bf5a5aa1e582")
-	//req.URL.RawQuery = q.Encode()
 	rec := httptest.NewRecorder()
 
 	q := map[string]string{

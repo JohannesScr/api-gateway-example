@@ -17,17 +17,26 @@ type mock interface {
 	SetURL(scheme string, host string)
 }
 
+// Response contains the basic fields required to mock a response to be
+// expected to be sent back from any micro-service.
 type Response struct {
 	Status int
 	Header map[string]string
 	Body string
 }
 
+// Exchange is a Request / Response pair as defined by the IETF RFC2616
+// https://datatracker.ietf.org/doc/html/rfc2616#section-1.4
+// between two servers when using HTTP.
 type Exchange struct {
 	Response Response
 	Request *http.Request
 }
 
+// Mock server structure that groups the URL to which the mock server should
+// connect, the mock server itself, the series of exchanges as defined by an
+// Exchange and a counter to count the number of transmissions that have
+// occurred.
 type Mock struct {
 	URL    url.URL
 	Server *httptest.Server
@@ -36,6 +45,9 @@ type Mock struct {
 
 }
 
+// MockServer takes any mock or mock-able micro-service and creates a
+// mock http.Server and a Mock structure to aggregate all the mocked methods
+// together.
 func MockServer(mx mock) *Mock {
 	m := &Mock{
 		transmission: 0,
@@ -52,7 +64,9 @@ func (m *Mock) Append(e Exchange) {
 	m.Exchanges = append(m.Exchanges, e)
 }
 
-// transmit mocks the action where the micro-service receives the
+// transmit mocks the action where the micro-service receives the request
+// and keeps a reference to the request pointed to and returning the response
+// that should be responded with from the mock micro-service.
 func (m *Mock) transmit(r *http.Request) Response {
 	if m.transmission == len(m.Exchanges) {
 		log.Panic("exceeded mock request/response exchange transmissions")
@@ -87,8 +101,8 @@ func (m *Mock) mockServer(mx mock) *httptest.Server {
 }
 
 // mockHandler takes the request properties defined on the Mock and writes
-// it to the response of the mockServer which is a mock of the micro-service
-// being tested
+// it to the response of the mockServer which is a mock representing the
+// micro-service being tested
 func (m *Mock) mockHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		//log.Println(m.Response.Status)
@@ -123,7 +137,8 @@ func ReadRecorder(rec *httptest.ResponseRecorder) (*http.Response, []byte) {
 	return res, xb
 }
 
-// NewRequest is based on
+// NewRequest is based on a httptest.NewRequest and makes it easy to also
+// add the query parameters.
 func NewRequest(method string, target string, query map[string]string, headers map[string][]string, body io.Reader) *http.Request {
 	// new request
 	r := httptest.NewRequest(method, target, body)
