@@ -17,7 +17,7 @@ type Env struct {
 
 // Load takes a filename s and loads the contents of the file as environmental
 // variables
-func (e Env) Load(s string) {
+func (e *Env) Load(s string) {
 	if e.Vars == nil {
 		e.Vars = make(map[string]string)
 	}
