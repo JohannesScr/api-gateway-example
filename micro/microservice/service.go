@@ -32,6 +32,9 @@ func (s *service) SetURL(sc string, h string) {
 }
 
 // SetEnv set the current service scheme and host as environmental variable
+//
+// Mostly used for testing when the Env Vars need to be set dynamically when
+// service instances need to be created and stopped by the tests.
 func (s *service) SetEnv() error {
 	err := os.Setenv("MICROSERVICE_SCHEME", s.URL.Scheme)
 	if err != nil {
@@ -50,7 +53,6 @@ func (s *service) GetHome() *http.Response {
 	res, err := http.Get(s.URL.String())
 	if err != nil {
 		log.Println(err)
-		return res
 	}
 	return res
 }

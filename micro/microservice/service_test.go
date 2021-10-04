@@ -37,6 +37,30 @@ func TestService_SetURL(t *testing.T) {
 	}
 }
 
+func TestService_SetEnv(t *testing.T) {
+	s := NewService()
+	if s.URL.Host != "" {
+		t.Errorf("expected '' got '%v'", s.URL.Host)
+	}
+	if s.URL.Scheme != "" {
+		t.Errorf("expected '' got '%v'", s.URL.Scheme)
+	}
+
+	// create the dynamic micro-service instance
+	ms := microtest.MockServer(s)
+	defer ms.Server.Close()
+
+	// set the service environmental variables
+	err := s.SetEnv()
+	if err != nil {
+		t.Errorf("unable to set environmental variables dynamically")
+	}
+
+	if s.URL.String() != ms.Server.URL {
+		t.Errorf("expected '%v' got '%v'", ms.Server.URL, s.URL.String())
+	}
+}
+
 func TestService_GetHome(t *testing.T) {
 	s := NewService()
 	ms := microtest.MockServer(s)
