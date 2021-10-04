@@ -47,8 +47,8 @@ func TestHandleUserGet(t *testing.T) {
 	e := microtest.Exchange{
 		Response: microtest.Response{
 			Status: 200,
-			Header: map[string]string{
-				"x-token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.",
+			Header: map[string][]string{
+				"x-token": {"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9."},
 			},
 			Body: `{
 				"message": "user found successfully", 

@@ -3,6 +3,7 @@ package microservice
 import (
 	"github.com/google/uuid"
 	"github.com/johannesscr/api-gateway-example/micro/microtest"
+	"net/http"
 	"testing"
 )
 
@@ -40,6 +41,21 @@ func TestService_GetHome(t *testing.T) {
 	s := NewService()
 	ms := microtest.MockServer(s)
 	defer ms.Server.Close()
+
+	e := microtest.Exchange{
+		Response: microtest.Response{
+			Status: 200,
+			Header: map[string][]string{
+				"Content-Type": {"application/json", "charset=utf-8"},
+			},
+		},
+	}
+	ms.Append(e)
+
+	res := s.GetHome()
+	if res.StatusCode != http.StatusOK {
+		t.Errorf("expected %d got %d", http.StatusOK, res.StatusCode)
+	}
 }
 
 func TestService_GetUser(t *testing.T) {
@@ -52,7 +68,7 @@ func TestService_GetUser(t *testing.T) {
 	e := microtest.Exchange{
 		Response: microtest.Response{
 			Status: 200,
-			Header: map[string]string{"x-token": "124"},
+			Header: map[string][]string{"x-token": {"124"}},
 			Body: `{
 				"message": "user found successfully", 
 				"data": {

@@ -46,13 +46,13 @@ func (s *service) SetEnv() error {
 
 // GetHome is a PING function to test connection to the Security Micro-Service
 // is healthy
-func (s *service) GetHome() bool {
-	_, err := http.Get(s.URL.String())
+func (s *service) GetHome() *http.Response {
+	res, err := http.Get(s.URL.String())
 	if err != nil {
 		log.Println(err)
-		return false
+		return res
 	}
-	return true
+	return res
 }
 
 func (s *service) GetUser(uUUID string) (User, map[string][]string) {

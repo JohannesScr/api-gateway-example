@@ -1,5 +1,5 @@
 # Coverage Files
-*.out
+**/*.out
 
 # Dot Env File
 .env

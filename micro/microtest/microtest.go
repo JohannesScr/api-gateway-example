@@ -1,6 +1,7 @@
 package microtest
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -21,7 +22,7 @@ type mock interface {
 // expected to be sent back from any micro-service.
 type Response struct {
 	Status int
-	Header map[string]string
+	Header map[string][]string
 	Body string
 }
 
@@ -67,22 +68,22 @@ func (m *Mock) Append(e Exchange) {
 // transmit mocks the action where the micro-service receives the request
 // and keeps a reference to the request pointed to and returning the response
 // that should be responded with from the mock micro-service.
-func (m *Mock) transmit(r *http.Request) Response {
+func (m *Mock) transmit(r *http.Request) (Response, error) {
 	if m.transmission == len(m.Exchanges) {
-		log.Panic("exceeded mock request/response exchange transmissions")
+		return Response{}, NewErr("transmission", []string{"exceeded mock request/response exchange transmissions"})
 	}
 
 	e := m.Exchanges[m.transmission]
 	e.Request = r
 	// increment transmission number
 	m.transmission++
-	return e.Response
+	return e.Response, nil
 }
 
 // SetURL makes the Mock also of type mock interface
-func (m *Mock) SetURL(s string, h string) {
-	m.URL.Scheme = s
-	m.URL.Host = h
+func (m *Mock) SetURL(scheme string, host string) {
+	m.URL.Scheme = scheme
+	m.URL.Host = host
 }
 
 // MockServer takes a type mock interface, the type mock interface is the
@@ -108,14 +109,16 @@ func (m *Mock) mockHandler() http.HandlerFunc {
 		//log.Println(m.Response.Status)
 		//log.Println(m.Response.Header)
 		//log.Println(m.Response.Body)
-		res := m.transmit(r)
-
-		w.WriteHeader(res.Status)
-		for key, val := range res.Header {
-			w.Header().Set(key, val)
+		res, err := m.transmit(r)
+		if err != nil {
+			log.Panic(err)
 		}
 
-		_, err := w.Write([]byte(res.Body))
+		for key, values := range res.Header {
+			w.Header().Set(key, values[0])
+		}
+		w.WriteHeader(res.Status)
+		_, err = w.Write([]byte(res.Body))
 		if err != nil {
 			log.Panic(err)
 		}
@@ -151,4 +154,27 @@ func NewRequest(method string, target string, query map[string]string, headers m
 	}
 	r.URL.RawQuery = q.Encode()
 	return r
+}
+
+
+
+// Err is set defined structure for representing errors
+type Err struct {
+	errors map[string][]string
+}
+
+// NewErr creates a micro-test error struct and returns the and returns an Err struct
+// being pointed to.
+func NewErr(key string, errors []string) *Err {
+	return &Err{
+		errors: map[string][]string{
+			key: errors,
+		},
+	}
+}
+
+// Error returns a string representation of Err. Also makes it of the
+// type error interface.
+func (e *Err) Error() string {
+	 return fmt.Sprintf("%s", e.errors)
 }
